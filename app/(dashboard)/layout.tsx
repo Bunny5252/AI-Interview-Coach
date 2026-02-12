@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { UserButton } from "@clerk/nextjs";
 
 export default async function DashboardLayout({
   children,
@@ -23,6 +24,9 @@ export default async function DashboardLayout({
     redirect("/onboarding");
   }
 
+  // Check if user is onboarded (onboardedAt is not null)
+  const isOnboarded = user.onboardedAt !== null;
+
   return (
     <div className="min-h-screen bg-slate-50/50">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
@@ -31,18 +35,25 @@ export default async function DashboardLayout({
             HirinAi
           </Link>
           <nav className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">Dashboard</Button>
-            </Link>
-            <Link href="/interview/new">
-              <Button size="sm">New Interview</Button>
-            </Link>
-            <Link href="/sessions">
-              <Button variant="ghost" size="sm">Sessions</Button>
-            </Link>
-            <Link href="/profile">
-              <Button variant="ghost" size="sm">Profile</Button>
-            </Link>
+            {/* Show full nav menu only after onboarding */}
+            {isOnboarded ? (
+              <>
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="sm">Dashboard</Button>
+                </Link>
+                <Link href="/interview/new">
+                  <Button size="sm">New Interview</Button>
+                </Link>
+                <Link href="/sessions">
+                  <Button variant="ghost" size="sm">Sessions</Button>
+                </Link>
+                <Link href="/profile">
+                  <Button variant="ghost" size="sm">Profile</Button>
+                </Link>
+              </>
+            ) : null}
+            {/* Always show Clerk profile button */}
+            <UserButton />
           </nav>
         </div>
       </header>
