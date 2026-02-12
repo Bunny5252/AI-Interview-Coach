@@ -44,15 +44,23 @@ export function useVoiceAgent({
     setError(null);
     setCallStatus("connecting");
     try {
+      console.log("[v0] Voice Session: Requesting token for sessionId:", sessionId);
       const res = await fetch(`/api/voice/token?sessionId=${encodeURIComponent(sessionId)}`);
+      
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Failed to get voice session");
+        const errorMsg = data.error ?? `Failed to get voice session (${res.status})`;
+        console.error("[v0] Voice Session: Token request failed:", errorMsg, "Status:", res.status);
+        throw new Error(errorMsg);
       }
+      
       const data = (await res.json()) as {
         signedUrl: string;
         sessionId: string;
       };
+      
+      console.log("[v0] Voice Session: Successfully obtained token, starting conversation");
+      
 
       const conversation = await Conversation.startSession({
         signedUrl: data.signedUrl,
@@ -109,7 +117,9 @@ export function useVoiceAgent({
 
       conversationRef.current = conversation;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to start");
+      const errorMessage = err instanceof Error ? err.message : "Failed to start";
+      console.error("[v0] Voice Session Error:", errorMessage, err);
+      setError(errorMessage);
       setCallStatus("idle");
     }
   }, [sessionId, onSessionEnd, onTranscriptUpdate]);
